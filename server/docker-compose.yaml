@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    hostname: db
+    restart: always
+    environment:
+      POSTGRES_USER: weez_user
+      POSTGRES_PASSWORD: weez_password
+      POSTGRES_DB: weez_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  minio:
+    image: minio/minio
+    restart: always
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: weez_minio
+      MINIO_ROOT_PASSWORD: weez_minio_password
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
+  server:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: 8080
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: weez_db
+      DB_USER: weez_user
+      DB_PASSWORD: weez_password
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: weez_minio
+      MINIO_SECRET_KEY: weez_minio_password
+      MINIO_BUCKET: products
+    links:
+      - db:db
+    depends_on:
+      - db
+      - minio
+
+volumes:
+  postgres_data:
+  minio_data:
