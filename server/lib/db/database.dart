@@ -41,7 +41,6 @@ class AppDatabase {
         store_name TEXT,
         bin TEXT,
         address TEXT,
-        address TEXT,
         phone TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
@@ -183,6 +182,39 @@ class AppDatabase {
         product_id INTEGER NOT NULL REFERENCES products(id),
         quantity INTEGER NOT NULL,
         price DOUBLE PRECISION NOT NULL
+      );
+    ''');
+
+    // Favorites Table
+    await execute('''
+      CREATE TABLE IF NOT EXISTS favorites (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id),
+        product_id INTEGER NOT NULL REFERENCES products(id),
+        UNIQUE(user_id, product_id)
+      );
+    ''');
+
+    // Cart Items Table
+    await execute('''
+      CREATE TABLE IF NOT EXISTS cart_items (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id),
+        product_id INTEGER NOT NULL REFERENCES products(id),
+        quantity INTEGER NOT NULL,
+        UNIQUE(user_id, product_id)
+      );
+    ''');
+
+    // User Addresses Table
+    await execute('''
+      CREATE TABLE IF NOT EXISTS user_addresses (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id),
+        title TEXT NOT NULL,
+        address TEXT NOT NULL,
+        is_default BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     ''');
 

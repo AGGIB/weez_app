@@ -46,11 +46,18 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFE0EAFC), Color(0xFFCFDEF3)],
+            colors: isDark
+                ? [const Color(0xFF1A1C20), const Color(0xFF121212)]
+                : [const Color(0xFFE0EAFC), const Color(0xFFCFDEF3)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -80,13 +87,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    const SizedBox(height: 40),
                     // Header
                     Text(
                       'Создать аккаунт',
                       style: GoogleFonts.outfit(
                         fontSize: 32,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF2D3142),
+                        color: isDark ? Colors.white : const Color(0xFF2D3142),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -94,7 +102,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       'Присоединяйтесь к WEEZ Marketplace',
                       style: GoogleFonts.inter(
                         fontSize: 16,
-                        color: Colors.grey.shade600,
+                        color: isDark ? Colors.white70 : Colors.grey.shade600,
                       ),
                     ),
                     const SizedBox(height: 32),
@@ -103,11 +111,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDark ? Colors.grey[900] : Colors.white,
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withOpacity(
+                              isDark ? 0.3 : 0.05,
+                            ),
                             blurRadius: 20,
                             offset: const Offset(0, 10),
                           ),
@@ -135,7 +145,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                       decoration: BoxDecoration(
                                         color: _selectedRole == 'buyer'
                                             ? const Color(0xFF494F88)
-                                            : Colors.grey.shade100,
+                                            : (isDark
+                                                  ? Colors.black26
+                                                  : Colors.grey.shade100),
                                         borderRadius: BorderRadius.circular(10),
                                       ),
                                       alignment: Alignment.center,
@@ -144,7 +156,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                         style: GoogleFonts.inter(
                                           color: _selectedRole == 'buyer'
                                               ? Colors.white
-                                              : Colors.grey,
+                                              : (isDark
+                                                    ? Colors.white38
+                                                    : Colors.grey),
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -167,7 +181,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                       decoration: BoxDecoration(
                                         color: _selectedRole == 'seller'
                                             ? const Color(0xFF494F88)
-                                            : Colors.grey.shade100,
+                                            : (isDark
+                                                  ? Colors.black26
+                                                  : Colors.grey.shade100),
                                         borderRadius: BorderRadius.circular(10),
                                       ),
                                       alignment: Alignment.center,
@@ -176,7 +192,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                         style: GoogleFonts.inter(
                                           color: _selectedRole == 'seller'
                                               ? Colors.white
-                                              : Colors.grey,
+                                              : (isDark
+                                                    ? Colors.white38
+                                                    : Colors.grey),
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -191,18 +209,21 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             _buildTextField(
                               _nameController,
                               "Имя пользователя",
+                              isDark,
                               icon: Icons.person,
                             ),
                             const SizedBox(height: 16),
                             _buildTextField(
                               _emailController,
                               "Email",
+                              isDark,
                               icon: Icons.email,
                             ),
                             const SizedBox(height: 16),
                             _buildTextField(
                               _passwordController,
                               "Пароль",
+                              isDark,
                               icon: Icons.lock,
                               isPassword: true,
                             ),
@@ -214,31 +235,37 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                 "Информация о магазине",
                                 style: GoogleFonts.inter(
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.grey.shade700,
+                                  color: isDark
+                                      ? Colors.white70
+                                      : Colors.grey.shade700,
                                 ),
                               ),
                               const SizedBox(height: 8),
                               _buildTextField(
                                 _storeNameController,
                                 "Название магазина",
+                                isDark,
                                 icon: Icons.store,
                               ),
                               const SizedBox(height: 16),
                               _buildTextField(
                                 _binController,
                                 "БИН / ИИН",
+                                isDark,
                                 icon: Icons.numbers,
                               ),
                               const SizedBox(height: 16),
                               _buildTextField(
                                 _addressController,
                                 "Юридический адрес",
+                                isDark,
                                 icon: Icons.location_on,
                               ),
                               const SizedBox(height: 16),
                               _buildTextField(
                                 _phoneController,
                                 "Телефон",
+                                isDark,
                                 icon: Icons.phone,
                               ),
                             ],
@@ -279,7 +306,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                 text: TextSpan(
                                   text: "Уже есть аккаунт? ",
                                   style: GoogleFonts.inter(
-                                    color: Colors.grey.shade600,
+                                    color: isDark
+                                        ? Colors.white54
+                                        : Colors.grey.shade600,
                                   ),
                                   children: [
                                     TextSpan(
@@ -297,6 +326,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         ),
                       ),
                     ),
+                    const SizedBox(height: 40),
                   ],
                 ),
               ),
@@ -309,25 +339,32 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   Widget _buildTextField(
     TextEditingController controller,
-    String label, {
+    String label,
+    bool isDark, {
     IconData? icon,
     bool isPassword = false,
   }) {
     return TextFormField(
       controller: controller,
       obscureText: isPassword,
+      style: TextStyle(color: isDark ? Colors.white : Colors.black),
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: icon != null ? Icon(icon, color: Colors.grey) : null,
+        labelStyle: TextStyle(color: isDark ? Colors.white38 : Colors.grey),
+        prefixIcon: icon != null
+            ? Icon(icon, color: isDark ? Colors.white38 : Colors.grey)
+            : null,
         filled: true,
-        fillColor: Colors.grey.shade50,
+        fillColor: isDark ? Colors.black26 : Colors.grey.shade50,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade200),
+          borderSide: BorderSide(
+            color: isDark ? Colors.white10 : Colors.grey.shade200,
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

@@ -1,0 +1,41 @@
+Analyzing server...
+
+warning - bin/assign_products.dart:1:8 - Unused import: 'dart:io'. Try removing the import directive. - unused_import
+warning - bin/check_products.dart:1:8 - Unused import: 'dart:io'. Try removing the import directive. - unused_import
+warning - bin/clear_db.dart:1:8 - Unused import: '../lib/config/env.dart'. Try removing the import directive. - unused_import
+warning - bin/fix_store.dart:1:8 - Unused import: 'dart:io'. Try removing the import directive. - unused_import
+warning - bin/make_admin.dart:12:9 - The value of the local variable 'env' isn't used. Try removing the variable or using it. - unused_local_variable
+warning - bin/seed_orders.dart:1:8 - Unused import: 'dart:io'. Try removing the import directive. - unused_import
+warning - bin/seed_users.dart:1:8 - Unused import: 'package:postgres/postgres.dart'. Try removing the import directive. - unused_import
+warning - bin/seed_users.dart:8:9 - The value of the local variable 'env' isn't used. Try removing the variable or using it. - unused_local_variable
+warning - lib/api/file_api.dart:21:13 - The value of the local variable 'parameters' isn't used. Try removing the variable or using it. - unused_local_variable
+warning - lib/api/file_api.dart:27:15 - The value of the local variable 'name' isn't used. Try removing the variable or using it. - unused_local_variable
+warning - lib/config/env.dart:1:8 - Unused import: 'dart:io'. Try removing the import directive. - unused_import
+warning - lib/services/storage_service.dart:49:11 - The value of the local variable 'env' isn't used. Try removing the variable or using it. - unused_local_variable
+   info - bin/clear_db.dart:1:8 - Can't use a relative path to import a library in 'lib'. Try fixing the relative path or changing the import to a 'package:' import. - avoid_relative_lib_imports
+   info - bin/clear_db.dart:2:8 - Can't use a relative path to import a library in 'lib'. Try fixing the relative path or changing the import to a 'package:' import. - avoid_relative_lib_imports
+   info - bin/make_admin.dart:2:8 - Can't use a relative path to import a library in 'lib'. Try fixing the relative path or changing the import to a 'package:' import. - avoid_relative_lib_imports
+   info - bin/make_admin.dart:3:8 - Can't use a relative path to import a library in 'lib'. Try fixing the relative path or changing the import to a 'package:' import. - avoid_relative_lib_imports
+   info - bin/seed_users.dart:2:8 - Can't use a relative path to import a library in 'lib'. Try fixing the relative path or changing the import to a 'package:' import. - avoid_relative_lib_imports
+   info - bin/seed_users.dart:3:8 - Can't use a relative path to import a library in 'lib'. Try fixing the relative path or changing the import to a 'package:' import. - avoid_relative_lib_imports
+   info - bin/seed_users.dart:4:8 - Can't use a relative path to import a library in 'lib'. Try fixing the relative path or changing the import to a 'package:' import. - avoid_relative_lib_imports
+   info - bin/server.dart:6:8 - Can't use a relative path to import a library in 'lib'. Try fixing the relative path or changing the import to a 'package:' import. - avoid_relative_lib_imports
+   info - bin/server.dart:7:8 - Can't use a relative path to import a library in 'lib'. Try fixing the relative path or changing the import to a 'package:' import. - avoid_relative_lib_imports
+   info - bin/server.dart:8:8 - Can't use a relative path to import a library in 'lib'. Try fixing the relative path or changing the import to a 'package:' import. - avoid_relative_lib_imports
+   info - bin/server.dart:9:8 - Can't use a relative path to import a library in 'lib'. Try fixing the relative path or changing the import to a 'package:' import. - avoid_relative_lib_imports
+   info - bin/server.dart:10:8 - Can't use a relative path to import a library in 'lib'. Try fixing the relative path or changing the import to a 'package:' import. - avoid_relative_lib_imports
+   info - bin/server.dart:11:8 - Can't use a relative path to import a library in 'lib'. Try fixing the relative path or changing the import to a 'package:' import. - avoid_relative_lib_imports
+   info - bin/server.dart:12:8 - Can't use a relative path to import a library in 'lib'. Try fixing the relative path or changing the import to a 'package:' import. - avoid_relative_lib_imports
+   info - bin/server.dart:13:8 - Can't use a relative path to import a library in 'lib'. Try fixing the relative path or changing the import to a 'package:' import. - avoid_relative_lib_imports
+   info - bin/server.dart:14:8 - Can't use a relative path to import a library in 'lib'. Try fixing the relative path or changing the import to a 'package:' import. - avoid_relative_lib_imports
+   info - bin/server.dart:15:8 - Can't use a relative path to import a library in 'lib'. Try fixing the relative path or changing the import to a 'package:' import. - avoid_relative_lib_imports
+   info - bin/server.dart:16:8 - Can't use a relative path to import a library in 'lib'. Try fixing the relative path or changing the import to a 'package:' import. - avoid_relative_lib_imports
+   info - bin/server.dart:17:8 - Can't use a relative path to import a library in 'lib'. Try fixing the relative path or changing the import to a 'package:' import. - avoid_relative_lib_imports
+   info - lib/api/product_api.dart:194:9 - Statements in an if should be enclosed in a block. Try wrapping the statement in a block. - curly_braces_in_flow_control_structures
+   info - lib/api/product_api.dart:209:9 - Statements in an if should be enclosed in a block. Try wrapping the statement in a block. - curly_braces_in_flow_control_structures
+   info - lib/api/product_api.dart:237:9 - Statements in an if should be enclosed in a block. Try wrapping the statement in a block. - curly_braces_in_flow_control_structures
+   info - lib/api/product_api.dart:275:9 - Statements in an if should be enclosed in a block. Try wrapping the statement in a block. - curly_braces_in_flow_control_structures
+   info - lib/services/ai_service.dart:2:8 - The imported package 'http' isn't a dependency of the importing package. Try adding a dependency for 'http' in the 'pubspec.yaml' file. - depend_on_referenced_packages
+   info - lib/services/ai_service.dart:22:125 - Use interpolation to compose strings and values. Try using string interpolation to build the composite string. - prefer_interpolation_to_compose_strings
+
+37 issues found.

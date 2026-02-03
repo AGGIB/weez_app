@@ -11,12 +11,17 @@ abstract class ProductRemoteDataSource {
   Future<Either<Failure, List<ProductModel>>> getProducts({
     String? category,
     String? storeId,
+    String? search,
+    double? minPrice,
+    double? maxPrice,
   });
   Future<Either<Failure, ProductModel>> getProductById(String id);
   Future<Either<Failure, List<String>>> getCategories();
   Future<Either<Failure, ProductModel>> createProduct(ProductEntity product);
   Future<Either<Failure, ProductStatsModel>> getProductStats(String id);
   Future<Either<Failure, List<ReviewModel>>> getProductReviews(String id);
+  Future<Either<Failure, bool>> toggleFavorite(String id);
+  Future<Either<Failure, List<ProductModel>>> getFavorites();
 }
 
 class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
@@ -28,11 +33,17 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
   Future<Either<Failure, List<ProductModel>>> getProducts({
     String? category,
     String? storeId,
+    String? search,
+    double? minPrice,
+    double? maxPrice,
   }) async {
     try {
       final queryParams = <String, dynamic>{};
       if (category != null) queryParams['category'] = category;
       if (storeId != null) queryParams['store_id'] = storeId;
+      if (search != null) queryParams['search'] = search;
+      if (minPrice != null) queryParams['min_price'] = minPrice;
+      if (maxPrice != null) queryParams['max_price'] = maxPrice;
 
       final response = await apiClient.get(
         '/products',
@@ -169,6 +180,49 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
           ServerFailure(response.data['error'] ?? 'Failed to load reviews'),
         );
       }
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> toggleFavorite(String id) async {
+    try {
+      final response = await apiClient.post('/products/$id/favorite');
+      if (response.statusCode == 200) {
+        final data = response.data;
+        return Right(data['isFavorite'] == true);
+      } else {
+        return Left(
+          ServerFailure(response.data['error'] ?? 'Failed to toggle favorite'),
+        );
+      }
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<ProductModel>>> getFavorites() async {
+    try {
+      final response = await apiClient.get('/products/favorites');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data;
+        final products = data
+            .map((json) => ProductModel.fromJson(json as Map<String, dynamic>))
+            .toList();
+        return Right(products);
+      } else {
+        return Left(
+          ServerFailure(response.data['error'] ?? 'Failed to load favorites'),
+        );
+      }
+    } on DioException catch (e) {
+      return Left(
+        ServerFailure(
+          e.response?.data['error'] ?? e.message ?? 'Network error',
+        ),
+      );
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }

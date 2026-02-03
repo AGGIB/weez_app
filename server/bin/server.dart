@@ -9,6 +9,7 @@ import '../lib/api/seller_api.dart';
 import '../lib/api/file_api.dart';
 import '../lib/api/order_api.dart';
 import '../lib/api/ai_api.dart';
+import '../lib/api/cart_api.dart';
 import '../lib/api/admin_api.dart';
 import '../lib/middleware/cors.dart';
 import '../lib/db/database.dart';
@@ -17,27 +18,14 @@ import '../lib/services/storage_service.dart';
 
 // Configure routes.
 final _router = Router()
-  ..mount('/auth', AuthApi().router.call)
-  ..mount('/products', ProductApi().router.call)
-  ..mount('/seller', SellerApi().router.call)
-  ..mount(
-    '/shop',
-    OrderApi().router.call,
-  ) // Mount as /shop/seller/orders is in OrderApi but accessed via /shop prefix? No, let's keep it simple.
-  // OrderApi defines router.get('/seller/orders').
-  // If I mount it at '/', then it is accessibility at /seller/orders.
-  // But wait, SellerApi is mounted at /seller.
-  // Let's mount OrderApi at / (root) so it captures /seller/orders?
-  // Or better, move /seller/orders to /seller mount in SellerApi?
-  // No, separate file is better.
-  // I will mount OrderApi at /api/orders or just root if it has full paths.
-  // OrderApi has: router.get('/seller/orders', ...)
-  // If I mount at /shop, accessing it would be /shop/seller/orders.
-  // Users request "Orders Menu".
+  ..mount('/', AuthApi().router.call)
+  ..mount('/', ProductApi().router.call)
+  ..mount('/', SellerApi().router.call)
   ..mount('/', OrderApi().router.call)
-  ..mount('/files', FileApi().router.call)
-  ..mount('/api/v1/ai', AiApi().router.call)
-  ..mount('/api/v1/admin', AdminApi().router.call)
+  ..mount('/', FileApi().router.call)
+  ..mount('/', AiApi().router.call)
+  ..mount('/', CartApi().router.call)
+  ..mount('/', AdminApi().router.call)
   ..get('/', _rootHandler);
 
 Response _rootHandler(Request req) {

@@ -8,9 +8,8 @@ class ApiClient {
     // For Android Emulator, use 'http://10.0.2.2:8080'
     // For Physical Device, use your computer's local IP 'http://192.168.x.x:8080'
     dio.options.baseUrl = 'http://127.0.0.1:8080';
-    dio.options.connectTimeout = const Duration(seconds: 5);
-    dio.options.receiveTimeout = const Duration(seconds: 5);
-    dio.options.receiveTimeout = const Duration(seconds: 5);
+    dio.options.connectTimeout = const Duration(seconds: 60);
+    dio.options.receiveTimeout = const Duration(seconds: 60);
   }
 
   void setToken(String token) {
@@ -39,5 +38,9 @@ class ApiClient {
 
   Future<Response> put(String path, {dynamic data, Options? options}) async {
     return dio.put(path, data: data, options: options);
+  }
+
+  Future<Response> delete(String path, {dynamic data, Options? options}) async {
+    return dio.delete(path, data: data, options: options);
   }
 }

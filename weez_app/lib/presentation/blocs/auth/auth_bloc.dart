@@ -11,6 +11,24 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthLoginRequested>(_onLoginRequested);
     on<AuthRegisterRequested>(_onRegisterRequested);
     on<AuthLogoutRequested>(_onLogoutRequested);
+    on<AuthUpdateProfileRequested>(_onUpdateProfileRequested);
+  }
+
+  Future<void> _onUpdateProfileRequested(
+    AuthUpdateProfileRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    final result = await authRepository.updateProfile(
+      name: event.name,
+      email: event.email,
+      phone: event.phone,
+    );
+
+    result.fold((failure) => emit(AuthError(failure.message)), (_) {
+      // Refresh user info after update
+      add(AuthCheckRequested());
+    });
   }
 
   Future<void> _onAuthCheckRequested(

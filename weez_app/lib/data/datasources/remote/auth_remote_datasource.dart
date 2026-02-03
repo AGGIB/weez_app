@@ -17,6 +17,18 @@ abstract class AuthRemoteDataSource {
     String? address,
     String? phone,
   });
+  Future<Either<Failure, void>> updateProfile({
+    String? name,
+    String? email,
+    String? phone,
+  });
+  Future<Either<Failure, List<Map<String, dynamic>>>> getAddresses();
+  Future<Either<Failure, void>> addAddress(
+    String title,
+    String address,
+    bool isDefault,
+  );
+  Future<Either<Failure, void>> deleteAddress(int id);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -30,25 +42,17 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     String password,
   ) async {
     try {
-      print('Attempting login for $email');
       final response = await apiClient.post(
         '/auth/login',
         data: {'email': email, 'password': password},
       );
-      print('Login response status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         var data = response.data;
-        if (data is String) {
-          data = json.decode(data);
-        }
-
+        if (data is String) data = json.decode(data);
         final token = data['token'];
         final userData = data['user'];
-
-        // Save Token (TODO: Use SharedPreferences or SecureStorage)
         apiClient.setToken(token);
-
         return Right(
           UserEntity(
             id: userData['id'].toString(),
@@ -58,35 +62,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           ),
         );
       } else {
-        var data = response.data;
-        if (data is String) {
-          try {
-            data = json.decode(data);
-          } catch (_) {}
-        }
-        final msg = data is Map ? data['error'] : data.toString();
-        return Left(ServerFailure(msg ?? 'Login failed'));
+        return Left(ServerFailure(response.data['error'] ?? 'Login failed'));
       }
-    } on DioException catch (e) {
-      print('DioError during login: ${e.message}');
-
-      String? errorMessage;
-      if (e.response != null) {
-        print('DioError Response: ${e.response?.data}');
-        var data = e.response!.data;
-        if (data is String) {
-          try {
-            data = json.decode(data);
-          } catch (_) {}
-        }
-        if (data is Map) {
-          errorMessage = data['error'];
-        }
-      }
-
-      return Left(ServerFailure(errorMessage ?? e.message ?? 'Network error'));
     } catch (e) {
-      print('General Error during login: $e');
       return Left(ServerFailure(e.toString()));
     }
   }
@@ -116,39 +94,83 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           'phone': phone,
         },
       );
+      if (response.statusCode == 200) return login(email, password);
+      return Left(
+        ServerFailure(response.data['error'] ?? 'Registration failed'),
+      );
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 
+  @override
+  Future<Either<Failure, void>> updateProfile({
+    String? name,
+    String? email,
+    String? phone,
+  }) async {
+    try {
+      final response = await apiClient.put(
+        '/auth/profile',
+        data: {
+          if (name != null) 'name': name,
+          if (email != null) 'email': email,
+          if (phone != null) 'phone': phone,
+        },
+      );
+      if (response.statusCode == 200) return const Right(null);
+      return Left(ServerFailure(response.data['error'] ?? 'Update failed'));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<Map<String, dynamic>>>> getAddresses() async {
+    try {
+      final response = await apiClient.get('/auth/addresses');
       if (response.statusCode == 200) {
-        // Auto login after register? Or require explicit login.
-        // For now, let's just return success or maybe auto-login logic if API returned token.
-        // My current API just says "User created". So user needs to login.
+        final List<dynamic> data = response.data is String
+            ? json.decode(response.data)
+            : response.data;
+        return Right(data.map((e) => Map<String, dynamic>.from(e)).toList());
+      }
+      return Left(
+        ServerFailure(response.data['error'] ?? 'Failed to get addresses'),
+      );
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 
-        // We'll return a placeholder user or implement logic to login immediately.
-        // Let's call login immediately.
-        return login(email, password);
-      } else {
-        var data = response.data;
-        if (data is String) {
-          try {
-            data = json.decode(data);
-          } catch (_) {}
-        }
-        final msg = data is Map ? data['error'] : data.toString();
-        return Left(ServerFailure(msg ?? 'Registration failed'));
-      }
-    } on DioException catch (e) {
-      String? errorMessage;
-      if (e.response != null) {
-        var data = e.response!.data;
-        if (data is String) {
-          try {
-            data = json.decode(data);
-          } catch (_) {}
-        }
-        if (data is Map) {
-          errorMessage = data['error'];
-        }
-      }
-      return Left(ServerFailure(errorMessage ?? e.message ?? 'Network error'));
+  @override
+  Future<Either<Failure, void>> addAddress(
+    String title,
+    String address,
+    bool isDefault,
+  ) async {
+    try {
+      final response = await apiClient.post(
+        '/auth/addresses',
+        data: {'title': title, 'address': address, 'is_default': isDefault},
+      );
+      if (response.statusCode == 200) return const Right(null);
+      return Left(
+        ServerFailure(response.data['error'] ?? 'Failed to add address'),
+      );
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteAddress(int id) async {
+    try {
+      final response = await apiClient.delete('/auth/addresses/$id');
+      if (response.statusCode == 200) return const Right(null);
+      return Left(
+        ServerFailure(response.data['error'] ?? 'Failed to delete address'),
+      );
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }

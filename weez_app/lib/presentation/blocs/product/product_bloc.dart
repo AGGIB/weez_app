@@ -22,6 +22,9 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     final productsResult = await productRepository.getProducts(
       category: event.category,
       storeId: event.storeId,
+      search: event.search,
+      minPrice: event.minPrice,
+      maxPrice: event.maxPrice,
     );
     final categoriesResult = await productRepository.getCategories();
 

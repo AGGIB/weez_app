@@ -19,13 +19,19 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(
+            Icons.arrow_back,
+            color: isDark ? Colors.white : Colors.black,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -37,49 +43,51 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 20),
-                
+
                 // Title
                 Text(
                   'Восстановление пароля',
                   style: GoogleFonts.inter(
                     fontSize: 28,
                     fontWeight: FontWeight.w700,
-                    color: Colors.black,
+                    color: isDark ? Colors.white : Colors.black,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                
+
                 const SizedBox(height: 12),
-                
+
                 // Description
                 Text(
                   'Введите email, на который зарегистрирован ваш аккаунт',
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     fontWeight: FontWeight.w400,
-                    color: Colors.black54,
+                    color: isDark ? Colors.white54 : Colors.black54,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                
+
                 const SizedBox(height: 40),
-                
+
                 // Email input field
                 TextField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   style: GoogleFonts.inter(
                     fontSize: 15,
-                    color: Colors.black,
+                    color: isDark ? Colors.white : Colors.black,
                   ),
                   decoration: InputDecoration(
                     labelText: 'Email',
                     labelStyle: GoogleFonts.inter(
                       fontSize: 15,
-                      color: Colors.black45,
+                      color: isDark ? Colors.white38 : Colors.black45,
                     ),
                     filled: true,
-                    fillColor: const Color(0xFFF5F5F5),
+                    fillColor: isDark
+                        ? Colors.grey[900]
+                        : const Color(0xFFF5F5F5),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
@@ -90,7 +98,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ),
                     suffixIcon: _emailController.text.isNotEmpty
                         ? IconButton(
-                            icon: const Icon(Icons.cancel, color: Colors.grey, size: 20),
+                            icon: Icon(
+                              Icons.cancel,
+                              color: isDark ? Colors.white38 : Colors.grey,
+                              size: 20,
+                            ),
                             onPressed: () {
                               setState(() {
                                 _emailController.clear();
@@ -103,9 +115,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     setState(() {});
                   },
                 ),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // Send reset link button
                 ElevatedButton(
                   onPressed: () {
@@ -137,9 +149,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 20),
-                
+
                 // Back to login
                 TextButton(
                   onPressed: () {

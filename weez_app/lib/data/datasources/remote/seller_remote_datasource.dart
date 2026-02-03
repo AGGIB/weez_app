@@ -107,7 +107,7 @@ class SellerRemoteDataSourceImpl implements SellerRemoteDataSource {
   ) async {
     try {
       final response = await apiClient.post(
-        '/api/v1/ai/generate-description',
+        '/ai/generate-description',
         data: {
           'productName': productName,
           'category': category,
@@ -116,9 +116,9 @@ class SellerRemoteDataSourceImpl implements SellerRemoteDataSource {
       );
 
       if (response.statusCode == 200) {
-        final data = response.data;
-        final map = data is String ? json.decode(data) : data;
-        return Right(map['generatedText'] ?? '');
+        var data = response.data;
+        if (data is String) data = json.decode(data);
+        return Right(data['generatedText'] ?? '');
       } else {
         final data = response.data;
         final message = data is Map ? data['error'] : data.toString();

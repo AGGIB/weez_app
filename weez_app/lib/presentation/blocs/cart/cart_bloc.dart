@@ -24,23 +24,35 @@ class CartBloc extends Bloc<CartEvent, CartState> {
   }
 
   Future<void> _onAddToCart(AddToCart event, Emitter<CartState> emit) async {
-    final result = await cartRepository.addToCart(event.productId, event.quantity);
+    final result = await cartRepository.addToCart(
+      event.productId,
+      event.quantity,
+    );
     result.fold(
       (failure) => emit(CartError(failure.message)),
       (_) => add(LoadCart()),
     );
   }
 
-  Future<void> _onRemoveFromCart(RemoveFromCart event, Emitter<CartState> emit) async {
-    final result = await cartRepository.removeFromCart(event.productId);
+  Future<void> _onRemoveFromCart(
+    RemoveFromCart event,
+    Emitter<CartState> emit,
+  ) async {
+    final result = await cartRepository.removeFromCart(event.cartItemId);
     result.fold(
       (failure) => emit(CartError(failure.message)),
       (_) => add(LoadCart()),
     );
   }
 
-  Future<void> _onUpdateCartQuantity(UpdateCartQuantity event, Emitter<CartState> emit) async {
-    final result = await cartRepository.updateQuantity(event.productId, event.quantity);
+  Future<void> _onUpdateCartQuantity(
+    UpdateCartQuantity event,
+    Emitter<CartState> emit,
+  ) async {
+    final result = await cartRepository.updateQuantity(
+      event.cartItemId,
+      event.quantity,
+    );
     result.fold(
       (failure) => emit(CartError(failure.message)),
       (_) => add(LoadCart()),

@@ -26,4 +26,23 @@ class OrderRepositoryImpl implements OrderRepository {
   ) async {
     return await remoteDataSource.updateOrderStatus(id, status);
   }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> checkout() async {
+    return await remoteDataSource.checkout();
+  }
+
+  @override
+  Future<Either<Failure, List<OrderEntity>>> getBuyerOrders() async {
+    // RemoteDataSource returns List<OrderModel> which extends OrderEntity
+    // But generic type might need explicit mapping or covariance.
+    // OrderRepository expects List<OrderEntity>.
+    // RemoteDataSource returns Either<Failure, List<OrderModel>>.
+    // If OrderModel extends OrderEntity, this should work if cast or mapped.
+    // Let's rely on covariance or map.
+    // Wait, typical pattern: return await remoteDataSource.getBuyerOrders();
+    // works because List<OrderModel> is subtype of List<OrderEntity> ?
+    // Dart generics are covariant? Yes usually.
+    return await remoteDataSource.getBuyerOrders();
+  }
 }

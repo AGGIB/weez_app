@@ -7,8 +7,8 @@ import '../utils/jwt.dart';
 class AdminApi {
   Router get router {
     final router = Router();
-    router.get('/stats', _getStats);
-    router.get('/users', _getUsers);
+    router.get('/admin/stats', _getStats);
+    router.get('/admin/users', _getUsers);
     return router;
   }
 

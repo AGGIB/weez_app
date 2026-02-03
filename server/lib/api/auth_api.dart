@@ -8,9 +8,126 @@ import '../utils/jwt.dart';
 class AuthApi {
   Router get router {
     final router = Router();
-    router.post('/register', _register);
-    router.post('/login', _login);
+    router.post('/auth/register', _register);
+    router.post('/auth/login', _login);
+    router.put('/auth/profile', _updateProfile);
+    router.get('/auth/addresses', _getAddresses);
+    router.post('/auth/addresses', _addAddress);
+    router.delete('/auth/addresses/<id>', _deleteAddress);
     return router;
+  }
+
+  // Helper to extract user ID from token
+  Future<int?> _getUserId(Request request) async {
+    final token = request.headers['Authorization']?.replaceFirst('Bearer ', '');
+    if (token == null) return null;
+    final jwt = verifyToken(token);
+    if (jwt == null) return null;
+    return jwt.payload['user_id'] as int?;
+  }
+
+  Future<Response> _updateProfile(Request request) async {
+    try {
+      final userId = await _getUserId(request);
+      if (userId == null) return Response.forbidden('Invalid token');
+
+      final payload = await request.readAsString();
+      final data = json.decode(payload);
+      final name = data['name'];
+      final email = data['email'];
+      final phone = data['phone'];
+
+      await db.execute(
+        'UPDATE users SET name = COALESCE(@name, name), email = COALESCE(@email, email), phone = COALESCE(@phone, phone) WHERE id = @id',
+        substitutionValues: {
+          'name': name,
+          'email': email,
+          'phone': phone,
+          'id': userId,
+        },
+      );
+
+      return Response.ok(json.encode({'status': 'success'}));
+    } catch (e) {
+      return Response.internalServerError(
+        body: json.encode({'error': e.toString()}),
+      );
+    }
+  }
+
+  Future<Response> _getAddresses(Request request) async {
+    try {
+      final userId = await _getUserId(request);
+      if (userId == null) return Response.forbidden('Invalid token');
+
+      final result = await db.queryMapped(
+        'SELECT * FROM user_addresses WHERE user_id = @user_id ORDER BY created_at DESC',
+        substitutionValues: {'user_id': userId},
+      );
+
+      return Response.ok(
+        json.encode(result),
+        headers: {'Content-Type': 'application/json'},
+      );
+    } catch (e) {
+      return Response.internalServerError(
+        body: json.encode({'error': e.toString()}),
+      );
+    }
+  }
+
+  Future<Response> _addAddress(Request request) async {
+    try {
+      final userId = await _getUserId(request);
+      if (userId == null) return Response.forbidden('Invalid token');
+
+      final payload = await request.readAsString();
+      final data = json.decode(payload);
+      final title = data['title'];
+      final address = data['address'];
+      final isDefault = data['isDefault'] ?? false;
+
+      if (isDefault == true) {
+        await db.execute(
+          'UPDATE user_addresses SET is_default = FALSE WHERE user_id = @user_id',
+          substitutionValues: {'user_id': userId},
+        );
+      }
+
+      await db.execute(
+        'INSERT INTO user_addresses (user_id, title, address, is_default) VALUES (@uid, @title, @addr, @def)',
+        substitutionValues: {
+          'uid': userId,
+          'title': title,
+          'addr': address,
+          'def': isDefault,
+        },
+      );
+
+      return Response.ok(json.encode({'status': 'success'}));
+    } catch (e) {
+      return Response.internalServerError(
+        body: json.encode({'error': e.toString()}),
+      );
+    }
+  }
+
+  Future<Response> _deleteAddress(Request request, String id) async {
+    try {
+      final userId = await _getUserId(request);
+      if (userId == null) return Response.forbidden('Invalid token');
+
+      await db.execute(
+        'DELETE FROM user_addresses WHERE id = @id AND user_id = @uid',
+        substitutionValues: {'id': int.parse(id), 'uid': userId},
+      );
+
+      return Response.ok(json.encode({'status': 'success'}));
+    } catch (e) {
+      return Response.internalServerError(
+        body: json.encode({'error': e.toString()}),
+      );
+    }
   }
 
   Future<Response> _register(Request request) async {

@@ -13,6 +13,11 @@ class LoadSellerOrders extends OrderEvent {
   List<Object> get props => [];
 }
 
+class LoadBuyerOrders extends OrderEvent {
+  @override
+  List<Object> get props => [];
+}
+
 // States
 abstract class OrderState extends Equatable {
   const OrderState();
@@ -50,6 +55,15 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     on<LoadSellerOrders>((event, emit) async {
       emit(OrderLoading());
       final result = await orderRepository.getSellerOrders();
+      result.fold(
+        (failure) => emit(OrderError(failure.message)),
+        (orders) => emit(OrderLoaded(orders)),
+      );
+    });
+
+    on<LoadBuyerOrders>((event, emit) async {
+      emit(OrderLoading());
+      final result = await orderRepository.getBuyerOrders();
       result.fold(
         (failure) => emit(OrderError(failure.message)),
         (orders) => emit(OrderLoaded(orders)),

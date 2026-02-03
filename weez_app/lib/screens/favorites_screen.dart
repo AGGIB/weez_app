@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'product_detail_screen.dart';
 import '../domain/entities/product.dart';
+import '../presentation/blocs/product/product_bloc.dart';
+import '../presentation/blocs/product/product_event.dart';
+import '../presentation/blocs/product/product_state.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -11,49 +15,49 @@ class FavoritesScreen extends StatefulWidget {
 }
 
 class _FavoritesScreenState extends State<FavoritesScreen> {
-  final List<ProductEntity> _favorites = [
-     const ProductEntity(
-      id: '1',
-      name: 'iPhone 16 PRO',
-      category: 'Телефоны',
-      price: 840000,
-      rating: 5.0,
-      imageUrl: 'phone',
-      description: 'The latest iPhone.',
-      isFavorite: true,
-    ),
-    const ProductEntity(
-      id: '2',
-      name: 'MacBook Pro',
-      category: 'Ноутбуки',
-      price: 1200000,
-      rating: 4.9,
-      imageUrl: 'laptop',
-      description: 'Power and portability.',
-      isFavorite: true,
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    context.read<ProductBloc>().add(LoadFavorites());
+  }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: isDark ? Colors.white : Colors.black,
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: Text(
           'Избранное',
           style: GoogleFonts.inter(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: Colors.black,
+            color: isDark ? Colors.white : Colors.black,
           ),
         ),
         centerTitle: true,
       ),
-      body: _favorites.isEmpty
-          ? _buildEmptyState()
-          : GridView.builder(
+      body: BlocBuilder<ProductBloc, ProductState>(
+        builder: (context, state) {
+          if (state is ProductLoading) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (state is ProductFavoritesLoaded) {
+            final favorites = state.favorites;
+            if (favorites.isEmpty) {
+              return _buildEmptyState(theme, isDark);
+            }
+            return GridView.builder(
               padding: const EdgeInsets.all(20),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
@@ -61,15 +65,31 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 mainAxisSpacing: 12,
                 childAspectRatio: 0.7,
               ),
-              itemCount: _favorites.length,
+              itemCount: favorites.length,
               itemBuilder: (context, index) {
-                return _buildFavoriteCard(_favorites[index], index);
+                return _buildFavoriteCard(
+                  favorites[index],
+                  index,
+                  theme,
+                  isDark,
+                );
               },
-            ),
+            );
+          } else if (state is ProductError) {
+            return Center(
+              child: Text(
+                state.message,
+                style: TextStyle(color: theme.colorScheme.error),
+              ),
+            );
+          }
+          return _buildEmptyState(theme, isDark);
+        },
+      ),
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(ThemeData theme, bool isDark) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -77,7 +97,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           Icon(
             Icons.favorite_border,
             size: 100,
-            color: Colors.grey.shade300,
+            color: isDark ? Colors.white24 : Colors.grey.shade300,
           ),
           const SizedBox(height: 16),
           Text(
@@ -85,7 +105,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             style: GoogleFonts.inter(
               fontSize: 20,
               fontWeight: FontWeight.w600,
-              color: Colors.black,
+              color: isDark ? Colors.white : Colors.black,
             ),
           ),
           const SizedBox(height: 8),
@@ -93,7 +113,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             'Добавьте товары в избранное',
             style: GoogleFonts.inter(
               fontSize: 14,
-              color: Colors.grey,
+              color: isDark ? Colors.white70 : Colors.grey,
             ),
           ),
         ],
@@ -101,7 +121,12 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     );
   }
 
-  Widget _buildFavoriteCard(ProductEntity product, int index) {
+  Widget _buildFavoriteCard(
+    ProductEntity product,
+    int index,
+    ThemeData theme,
+    bool isDark,
+  ) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -113,9 +138,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? Colors.grey[900] : Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade200),
+          border: Border.all(
+            color: isDark ? Colors.white10 : Colors.grey.shade200,
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -126,16 +153,16 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 Container(
                   height: 140,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
+                    color: isDark ? Colors.black26 : Colors.grey.shade100,
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(16),
                     ),
                   ),
                   child: Center(
                     child: Icon(
-                      Icons.image, // Simplified
+                      _getIcon(product.imageUrl),
                       size: 60,
-                      color: Colors.grey.shade400,
+                      color: isDark ? Colors.white38 : Colors.grey.shade400,
                     ),
                   ),
                 ),
@@ -144,9 +171,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   right: 8,
                   child: GestureDetector(
                     onTap: () {
-                      setState(() {
-                        _favorites.removeAt(index);
-                      });
+                      context.read<ProductBloc>().add(
+                        ToggleFavorite(product.id),
+                      );
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
@@ -160,7 +187,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDark ? Colors.grey[800] : Colors.white,
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
@@ -191,7 +218,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Colors.black,
+                      color: isDark ? Colors.white : Colors.black,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -201,7 +228,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     product.category,
                     style: GoogleFonts.inter(
                       fontSize: 12,
-                      color: Colors.grey,
+                      color: isDark ? Colors.white70 : Colors.grey,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -214,7 +241,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                           style: GoogleFonts.inter(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
-                            color: Colors.black,
+                            color: isDark ? Colors.white : Colors.black,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -222,18 +249,14 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       ),
                       Row(
                         children: [
-                          const Icon(
-                            Icons.star,
-                            size: 14,
-                            color: Colors.amber,
-                          ),
+                          const Icon(Icons.star, size: 14, color: Colors.amber),
                           const SizedBox(width: 2),
                           Text(
                             product.rating.toString(),
                             style: GoogleFonts.inter(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: Colors.black,
+                              color: isDark ? Colors.white : Colors.black,
                             ),
                           ),
                         ],
@@ -249,8 +272,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     );
   }
 
-  IconData _getIcon(String type) {
-    switch (type) {
+  IconData _getIcon(String? type) {
+    if (type == null) return Icons.image;
+    switch (type.toLowerCase()) {
       case 'phone':
         return Icons.phone_iphone;
       case 'laptop':

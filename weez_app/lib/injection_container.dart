@@ -1,6 +1,8 @@
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
+import 'data/datasources/remote/cart_remote_datasource.dart';
+import 'data/repositories/cart_repository_impl.dart';
 
 import 'domain/repositories/auth_repository.dart';
 import 'domain/repositories/product_repository.dart';
@@ -10,7 +12,7 @@ import 'data/datasources/remote/auth_remote_datasource.dart';
 import 'data/datasources/remote/product_remote_datasource.dart';
 import 'data/repositories/auth_repository_impl.dart';
 import 'data/repositories/product_repository_impl.dart';
-import 'data/repositories/mock_cart_repository.dart';
+
 import 'presentation/blocs/auth/auth_bloc.dart';
 import 'presentation/blocs/product/product_bloc.dart';
 import 'presentation/blocs/product_stats/product_stats_bloc.dart';
@@ -24,8 +26,13 @@ import 'data/repositories/file_repository.dart';
 import 'data/datasources/remote/seller_remote_datasource.dart';
 import 'domain/repositories/seller_repository.dart';
 import 'data/repositories/seller_repository_impl.dart';
+import 'data/datasources/remote/ai_remote_datasource.dart';
+import 'data/repositories/ai_repository_impl.dart';
+import 'presentation/blocs/ai/ai_bloc.dart';
 import 'presentation/blocs/seller/seller_bloc.dart';
 import 'presentation/blocs/seller_dashboard/seller_dashboard_bloc.dart';
+import 'presentation/blocs/checkout/checkout_cubit.dart';
+import 'presentation/blocs/theme/theme_cubit.dart';
 
 // Admin
 import 'features/admin/data/datasources/admin_remote_datasource.dart';
@@ -44,6 +51,8 @@ Future<void> init() async {
   sl.registerFactory(() => AuthBloc(authRepository: sl()));
   sl.registerFactory(() => ProductBloc(productRepository: sl()));
   sl.registerFactory(() => CartBloc(cartRepository: sl()));
+  sl.registerLazySingleton(() => ThemeCubit());
+  sl.registerFactory(() => AiBloc(aiRepository: sl()));
 
   // Admin Bloc
   sl.registerFactory(() => AdminBloc(adminRepository: sl()));
@@ -60,8 +69,7 @@ Future<void> init() async {
     () => ProductRepositoryImpl(remoteDataSource: sl()),
   );
   sl.registerLazySingleton<CartRepository>(
-    () =>
-        MockCartRepository(sl()), // Using MockCartRepository as Impl is missing
+    () => CartRepositoryImpl(remoteDataSource: sl()),
   );
   sl.registerLazySingleton<OrderRepository>(
     () => OrderRepositoryImpl(remoteDataSource: sl()),
@@ -72,7 +80,9 @@ Future<void> init() async {
   sl.registerLazySingleton<FileRepository>(
     () => FileRepositoryImpl(apiClient: sl()),
   );
-  // AiRepository is missing, skipping for now.
+  sl.registerLazySingleton<AiRepository>(
+    () => AiRepositoryImpl(remoteDataSource: sl()),
+  );
 
   sl.registerLazySingleton<AdminRepository>(
     () => AdminRepositoryImpl(remoteDataSource: sl()),
@@ -91,11 +101,16 @@ Future<void> init() async {
   sl.registerLazySingleton<SellerRemoteDataSource>(
     () => SellerRemoteDataSourceImpl(apiClient: sl()),
   );
-  // FileRemoteDataSource is not used by FileRepositoryImpl (it uses ApiClient directly)
-  // AiRemoteDataSource is missing/unused.
+  sl.registerLazySingleton<AiRemoteDataSource>(
+    () => AiRemoteDataSourceImpl(apiClient: sl()),
+  );
 
   sl.registerLazySingleton<AdminRemoteDataSource>(
     () => AdminRemoteDataSourceImpl(apiClient: sl()),
+  );
+
+  sl.registerLazySingleton<CartRemoteDataSource>(
+    () => CartRemoteDataSourceImpl(apiClient: sl()),
   );
 
   // More Blocs
@@ -104,4 +119,5 @@ Future<void> init() async {
   sl.registerFactory(() => OrderDetailsBloc(orderRepository: sl()));
   sl.registerFactory(() => SellerBloc(sellerRepository: sl()));
   sl.registerFactory(() => SellerDashboardBloc(sellerRepository: sl()));
+  sl.registerFactory(() => CheckoutCubit(orderRepository: sl()));
 }

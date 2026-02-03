@@ -12,6 +12,7 @@ class OrderModel extends OrderEntity {
     super.buyerPhone,
     super.buyerAddress,
     super.items,
+    super.storeName,
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
@@ -29,6 +30,7 @@ class OrderModel extends OrderEntity {
                 .map((e) => OrderItemModel.fromJson(e))
                 .toList()
           : null,
+      storeName: json['storeName'],
     );
   }
 }

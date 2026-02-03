@@ -8,6 +8,9 @@ import 'presentation/blocs/product/product_bloc.dart';
 import 'presentation/blocs/product/product_event.dart';
 import 'presentation/blocs/cart/cart_bloc.dart';
 import 'presentation/blocs/cart/cart_event.dart';
+import 'presentation/blocs/order/order_bloc.dart';
+import 'presentation/blocs/ai/ai_bloc.dart';
+import 'presentation/blocs/theme/theme_cubit.dart';
 import 'screens/splash_screen.dart';
 import 'screens/auth_screen.dart';
 import 'screens/home_screen.dart';
@@ -35,6 +38,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
+        BlocProvider(create: (_) => di.sl<ThemeCubit>()),
         BlocProvider(
           create: (_) => di.sl<AuthBloc>()..add(AuthCheckRequested()),
         ),
@@ -42,25 +46,41 @@ class MyApp extends StatelessWidget {
           create: (_) => di.sl<ProductBloc>()..add(const LoadProducts()),
         ),
         BlocProvider(create: (_) => di.sl<CartBloc>()..add(LoadCart())),
+        BlocProvider(create: (_) => di.sl<AiBloc>()),
+        BlocProvider(create: (_) => di.sl<OrderBloc>()),
       ],
-      child: MaterialApp(
-        title: 'WEEZ Marketplace',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          primaryColor: const Color(0xFF494F88),
-          scaffoldBackgroundColor: Colors.white,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF494F88),
-            primary: const Color(0xFF494F88),
-          ),
-          useMaterial3: true,
-        ),
-        home: const SplashScreen(),
-        routes: {
-          '/auth': (context) => const AuthScreen(),
-          '/home': (context) => const HomeScreen(),
-          '/seller_dashboard': (context) => const SellerDashboardScreen(),
-          '/admin': (context) => const AdminScaffold(),
+      child: BlocBuilder<ThemeCubit, ThemeMode>(
+        builder: (context, themeMode) {
+          return MaterialApp(
+            title: 'WEEZ Marketplace',
+            debugShowCheckedModeBanner: false,
+            themeMode: themeMode,
+            theme: ThemeData(
+              primaryColor: const Color(0xFF494F88),
+              scaffoldBackgroundColor: Colors.white,
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: const Color(0xFF494F88),
+                primary: const Color(0xFF494F88),
+              ),
+              useMaterial3: true,
+            ),
+            darkTheme: ThemeData.dark().copyWith(
+              primaryColor: const Color(0xFF494F88),
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: const Color(0xFF494F88),
+                primary: const Color(0xFF494F88),
+                brightness: Brightness.dark,
+              ),
+              useMaterial3: true,
+            ),
+            home: const SplashScreen(),
+            routes: {
+              '/auth': (context) => const AuthScreen(),
+              '/home': (context) => const HomeScreen(),
+              '/seller_dashboard': (context) => const SellerDashboardScreen(),
+              '/admin': (context) => const AdminScaffold(),
+            },
+          );
         },
       ),
     );

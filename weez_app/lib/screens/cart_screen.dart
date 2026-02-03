@@ -15,16 +15,21 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
-
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(
+            Icons.arrow_back,
+            color: isDark ? Colors.white : Colors.black,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -32,18 +37,10 @@ class _CartScreenState extends State<CartScreen> {
           style: GoogleFonts.inter(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: Colors.black,
+            color: isDark ? Colors.white : Colors.black,
           ),
         ),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.menu, color: Colors.black),
-            onPressed: () {
-              // TODO: Show menu
-            },
-          ),
-        ],
       ),
       body: BlocBuilder<CartBloc, CartState>(
         builder: (context, state) {
@@ -51,7 +48,7 @@ class _CartScreenState extends State<CartScreen> {
             return const Center(child: CircularProgressIndicator());
           } else if (state is CartLoaded) {
             if (state.items.isEmpty) {
-              return _buildEmptyCart();
+              return _buildEmptyCart(theme, isDark);
             }
             return Column(
               children: [
@@ -60,15 +57,30 @@ class _CartScreenState extends State<CartScreen> {
                     padding: const EdgeInsets.all(20),
                     itemCount: state.items.length,
                     itemBuilder: (context, index) {
-                      return _buildCartItem(state.items[index], index);
+                      return _buildCartItem(
+                        state.items[index],
+                        index,
+                        theme,
+                        isDark,
+                      );
                     },
                   ),
                 ),
-                _buildPaymentSection(state.items, state.totalPrice),
+                _buildPaymentSection(
+                  state.items,
+                  state.totalPrice,
+                  theme,
+                  isDark,
+                ),
               ],
             );
           } else if (state is CartError) {
-             return Center(child: Text(state.message));
+            return Center(
+              child: Text(
+                state.message,
+                style: TextStyle(color: theme.colorScheme.error),
+              ),
+            );
           }
           return const SizedBox();
         },
@@ -76,7 +88,7 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildEmptyCart() {
+  Widget _buildEmptyCart(ThemeData theme, bool isDark) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -84,7 +96,7 @@ class _CartScreenState extends State<CartScreen> {
           Icon(
             Icons.shopping_cart_outlined,
             size: 100,
-            color: Colors.grey.shade300,
+            color: isDark ? Colors.white12 : Colors.grey.shade300,
           ),
           const SizedBox(height: 16),
           Text(
@@ -92,7 +104,7 @@ class _CartScreenState extends State<CartScreen> {
             style: GoogleFonts.inter(
               fontSize: 20,
               fontWeight: FontWeight.w600,
-              color: Colors.black,
+              color: isDark ? Colors.white : Colors.black,
             ),
           ),
           const SizedBox(height: 8),
@@ -100,7 +112,7 @@ class _CartScreenState extends State<CartScreen> {
             'Добавьте товары для покупки',
             style: GoogleFonts.inter(
               fontSize: 14,
-              color: Colors.grey,
+              color: isDark ? Colors.white70 : Colors.grey,
             ),
           ),
         ],
@@ -108,14 +120,21 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildCartItem(CartItemEntity item, int index) { // index might not be needed if using ID
+  Widget _buildCartItem(
+    CartItemEntity item,
+    int index,
+    ThemeData theme,
+    bool isDark,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? Colors.grey[900] : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(
+          color: isDark ? Colors.white10 : Colors.grey.shade200,
+        ),
       ),
       child: Row(
         children: [
@@ -124,14 +143,14 @@ class _CartScreenState extends State<CartScreen> {
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              color: Colors.grey.shade100,
+              color: isDark ? Colors.black26 : Colors.grey.shade100,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
               child: Icon(
-                Icons.image, // Simplified logic for image
+                Icons.image,
                 size: 40,
-                color: Colors.grey.shade400,
+                color: isDark ? Colors.white24 : Colors.grey.shade400,
               ),
             ),
           ),
@@ -150,17 +169,17 @@ class _CartScreenState extends State<CartScreen> {
                         style: GoogleFonts.inter(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: Colors.black,
+                          color: isDark ? Colors.white : Colors.black,
                         ),
                       ),
                     ),
                     GestureDetector(
                       onTap: () {
-                        _showDeleteDialog(item);
+                        _showDeleteDialog(item, theme, isDark);
                       },
-                      child: const Icon(
+                      child: Icon(
                         Icons.more_horiz,
-                        color: Colors.black,
+                        color: isDark ? Colors.white70 : Colors.black,
                       ),
                     ),
                   ],
@@ -170,7 +189,7 @@ class _CartScreenState extends State<CartScreen> {
                   item.product.category,
                   style: GoogleFonts.inter(
                     fontSize: 13,
-                    color: Colors.grey,
+                    color: isDark ? Colors.white70 : Colors.grey,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -182,24 +201,34 @@ class _CartScreenState extends State<CartScreen> {
                       style: GoogleFonts.inter(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: Colors.black,
+                        color: isDark ? Colors.white : Colors.black,
                       ),
                     ),
                     Row(
                       children: [
                         GestureDetector(
                           onTap: () {
-                              if (item.quantity > 1) {
-                                context.read<CartBloc>().add(UpdateCartQuantity(item.id, item.quantity - 1));
-                              }
+                            if (item.quantity > 1) {
+                              context.read<CartBloc>().add(
+                                UpdateCartQuantity(item.id, item.quantity - 1),
+                              );
+                            }
                           },
                           child: Container(
                             padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey.shade300),
+                              border: Border.all(
+                                color: isDark
+                                    ? Colors.white24
+                                    : Colors.grey.shade300,
+                              ),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Icon(Icons.remove, size: 16),
+                            child: Icon(
+                              Icons.remove,
+                              size: 16,
+                              color: isDark ? Colors.white : Colors.black,
+                            ),
                           ),
                         ),
                         Container(
@@ -209,20 +238,31 @@ class _CartScreenState extends State<CartScreen> {
                             style: GoogleFonts.inter(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.white : Colors.black,
                             ),
                           ),
                         ),
                         GestureDetector(
                           onTap: () {
-                              context.read<CartBloc>().add(UpdateCartQuantity(item.id, item.quantity + 1));
+                            context.read<CartBloc>().add(
+                              UpdateCartQuantity(item.id, item.quantity + 1),
+                            );
                           },
                           child: Container(
                             padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey.shade300),
+                              border: Border.all(
+                                color: isDark
+                                    ? Colors.white24
+                                    : Colors.grey.shade300,
+                              ),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Icon(Icons.add, size: 16),
+                            child: Icon(
+                              Icons.add,
+                              size: 16,
+                              color: isDark ? Colors.white : Colors.black,
+                            ),
                           ),
                         ),
                       ],
@@ -237,14 +277,19 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildPaymentSection(List<CartItemEntity> items, double totalPrice) {
+  Widget _buildPaymentSection(
+    List<CartItemEntity> items,
+    double totalPrice,
+    ThemeData theme,
+    bool isDark,
+  ) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? Colors.grey[900] : Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),
@@ -257,9 +302,11 @@ class _CartScreenState extends State<CartScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.grey.shade50,
+                color: isDark ? Colors.black26 : Colors.grey.shade50,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade200),
+                border: Border.all(
+                  color: isDark ? Colors.white10 : Colors.grey.shade200,
+                ),
               ),
               child: Row(
                 children: [
@@ -285,11 +332,14 @@ class _CartScreenState extends State<CartScreen> {
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: Colors.black,
+                        color: isDark ? Colors.white : Colors.black,
                       ),
                     ),
                   ),
-                  const Icon(Icons.keyboard_arrow_down, color: Colors.black),
+                  Icon(
+                    Icons.keyboard_arrow_down,
+                    color: isDark ? Colors.white : Colors.black,
+                  ),
                 ],
               ),
             ),
@@ -302,7 +352,7 @@ class _CartScreenState extends State<CartScreen> {
                   'Общая сумма',
                   style: GoogleFonts.inter(
                     fontSize: 16,
-                    color: Colors.black87,
+                    color: isDark ? Colors.white70 : Colors.black87,
                   ),
                 ),
                 Text(
@@ -310,7 +360,7 @@ class _CartScreenState extends State<CartScreen> {
                   style: GoogleFonts.inter(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
-                    color: Colors.black,
+                    color: isDark ? Colors.white : Colors.black,
                   ),
                 ),
               ],
@@ -330,7 +380,9 @@ class _CartScreenState extends State<CartScreen> {
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
+                backgroundColor: isDark
+                    ? theme.colorScheme.primary
+                    : Colors.black,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
@@ -357,10 +409,10 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  void _showDeleteDialog(CartItemEntity item) {
+  void _showDeleteDialog(CartItemEntity item, ThemeData theme, bool isDark) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -375,10 +427,7 @@ class _CartScreenState extends State<CartScreen> {
                   leading: const Icon(Icons.delete_outline, color: Colors.red),
                   title: Text(
                     'Удалить из корзины',
-                    style: GoogleFonts.inter(
-                      fontSize: 16,
-                      color: Colors.red,
-                    ),
+                    style: GoogleFonts.inter(fontSize: 16, color: Colors.red),
                   ),
                   onTap: () {
                     context.read<CartBloc>().add(RemoveFromCart(item.id));
@@ -386,10 +435,16 @@ class _CartScreenState extends State<CartScreen> {
                   },
                 ),
                 ListTile(
-                  leading: const Icon(Icons.favorite_border),
+                  leading: Icon(
+                    Icons.favorite_border,
+                    color: isDark ? Colors.white70 : Colors.black,
+                  ),
                   title: Text(
                     'Добавить в избранное',
-                    style: GoogleFonts.inter(fontSize: 16),
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
                   ),
                   onTap: () {
                     Navigator.pop(context);
@@ -414,8 +469,8 @@ class _CartScreenState extends State<CartScreen> {
 
   String _formatPrice(int price) {
     return price.toString().replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (Match m) => '${m[1]}.',
-        );
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]}.',
+    );
   }
 }

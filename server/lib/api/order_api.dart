@@ -7,6 +7,8 @@ import '../utils/jwt.dart';
 class OrderApi {
   Router get router {
     final router = Router();
+    router.post('/checkout', _checkout);
+    router.get('/buyer/orders', _getBuyerOrders);
     router.get('/seller/orders', _getSellerOrders);
     router.get('/seller/orders/<id>', _getSellerOrderDetails);
     router.patch('/seller/orders/<id>/status', _updateOrderStatus);
@@ -200,6 +202,146 @@ class OrderApi {
       ); // Mock Notification
 
       return Response.ok(json.encode({'status': 'success'}));
+    } catch (e) {
+      return Response.internalServerError(
+        body: json.encode({'error': e.toString()}),
+      );
+    }
+  }
+
+  Future<Response> _checkout(Request request) async {
+    try {
+      final token = request.headers['Authorization']?.replaceFirst(
+        'Bearer ',
+        '',
+      );
+      if (token == null) return Response.forbidden('Missing token');
+      final jwt = verifyToken(token);
+      if (jwt == null) return Response.forbidden('Invalid token');
+      final userId = jwt.payload['user_id'];
+
+      // 1. Get Cart Items
+      final cartItems = await db.queryMapped(
+        '''
+        SELECT ci.*, p.price, p.store_id 
+        FROM cart_items ci
+        JOIN products p ON ci.product_id = p.id
+        WHERE ci.user_id = @uid
+      ''',
+        substitutionValues: {'uid': userId},
+      );
+
+      if (cartItems.isEmpty) {
+        return Response.badRequest(
+          body: json.encode({'error': 'Cart is empty'}),
+        );
+      }
+
+      // Group by store
+      final Map<int, List<Map<String, dynamic>>> itemsByStore = {};
+      for (var item in cartItems) {
+        final storeId = item['store_id'] as int;
+        if (!itemsByStore.containsKey(storeId)) itemsByStore[storeId] = [];
+        itemsByStore[storeId]!.add(item);
+      }
+
+      // Mock Payment Processing
+      await Future.delayed(Duration(seconds: 2));
+
+      final orderIds = <int>[];
+
+      for (var storeId in itemsByStore.keys) {
+        final items = itemsByStore[storeId]!;
+        double total = 0;
+        for (var item in items) {
+          total += (item['price'] as double) * (item['quantity'] as int);
+        }
+
+        // Create Order
+        await db.execute(
+          'INSERT INTO orders (user_id, store_id, total_amount, status) VALUES (@uid, @sid, @total, \'pending\')',
+          substitutionValues: {'uid': userId, 'sid': storeId, 'total': total},
+        );
+
+        final orderRes = await db.queryMapped(
+          'SELECT id FROM orders WHERE user_id = @uid AND store_id = @sid ORDER BY id DESC LIMIT 1',
+          substitutionValues: {'uid': userId, 'sid': storeId},
+        );
+        final orderId = orderRes.first['id'] as int;
+        orderIds.add(orderId);
+
+        for (var item in items) {
+          await db.execute(
+            'INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (@oid, @pid, @qty, @price)',
+            substitutionValues: {
+              'oid': orderId,
+              'pid': item['product_id'],
+              'qty': item['quantity'],
+              'price': item['price'],
+            },
+          );
+        }
+      }
+
+      // Clear Cart
+      await db.execute(
+        'DELETE FROM cart_items WHERE user_id = @uid',
+        substitutionValues: {'uid': userId},
+      );
+
+      return Response.ok(
+        json.encode({
+          'success': true,
+          'order_ids': orderIds,
+          'message': 'Оплата прошла успешно',
+        }),
+      );
+    } catch (e) {
+      print('Checkout Error: $e');
+      return Response.internalServerError(
+        body: json.encode({'error': e.toString()}),
+      );
+    }
+  }
+
+  Future<Response> _getBuyerOrders(Request request) async {
+    try {
+      final token = request.headers['Authorization']?.replaceFirst(
+        'Bearer ',
+        '',
+      );
+      if (token == null) return Response.forbidden('Missing token');
+      final jwt = verifyToken(token);
+      if (jwt == null) return Response.forbidden('Invalid token');
+      final userId = jwt.payload['user_id'];
+
+      final result = await db.queryMapped(
+        '''
+        SELECT o.id, o.status, o.total_amount, o.created_at, s.name as store_name 
+        FROM orders o
+        JOIN stores s ON o.store_id = s.id
+        WHERE o.user_id = @uid 
+        ORDER BY o.created_at DESC
+      ''',
+        substitutionValues: {'uid': userId},
+      );
+
+      final orders = result
+          .map(
+            (row) => {
+              'id': row['id'],
+              'status': row['status'],
+              'totalAmount': row['total_amount'],
+              'createdAt': row['created_at'].toString(),
+              'storeName': row['store_name'],
+            },
+          )
+          .toList();
+
+      return Response.ok(
+        json.encode(orders),
+        headers: {'Content-Type': 'application/json'},
+      );
     } catch (e) {
       return Response.internalServerError(
         body: json.encode({'error': e.toString()}),

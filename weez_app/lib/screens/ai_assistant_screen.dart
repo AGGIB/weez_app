@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'product_detail_screen.dart';
 import '../domain/entities/product.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../presentation/blocs/ai/ai_bloc.dart';
 
 class AIAssistantScreen extends StatefulWidget {
   const AIAssistantScreen({super.key});
@@ -15,42 +17,13 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
   final ScrollController _scrollController = ScrollController();
   final List<Map<String, dynamic>> _messages = [];
 
-  final List<ProductEntity> _suggestedProducts = [
-    const ProductEntity(
-      id: '1',
-      name: 'iPhone 16 PRO',
-      category: 'Телефоны',
-      price: 840000,
-      rating: 5.0,
-      imageUrl: 'phone',
-      description: 'The latest iPhone.',
-    ),
-    const ProductEntity(
-      id: '2',
-      name: 'MacBook Pro',
-      category: 'Ноутбуки',
-      price: 1200000,
-      rating: 4.9,
-      imageUrl: 'laptop',
-      description: 'Power and portability.',
-    ),
-    const ProductEntity(
-      id: '3',
-      name: 'AirPods Pro',
-      category: 'Аксессуары',
-      price: 120000,
-      rating: 4.8,
-      imageUrl: 'headphones',
-      description: 'Immersive sound.',
-    ),
-  ];
-
   @override
   void initState() {
     super.initState();
     // Welcome message
     _messages.add({
-      'text': 'Здравствуйте! 👋 Я ваш AI-ассистент. Помогу подобрать идеальный товар для вас. Что вы ищете?',
+      'text':
+          'Здравствуйте! 👋 Я ваш AI-ассистент. Помогу подобрать идеальный товар для вас. Что вы ищете?',
       'isUser': false,
       'timestamp': DateTime.now(),
     });
@@ -74,42 +47,37 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
       });
     });
 
-    final userMessage = _messageController.text.toLowerCase();
+    final userMessage = _messageController.text;
     _messageController.clear();
 
-    // Simulate AI response
-    Future.delayed(const Duration(milliseconds: 500), () {
-      String aiResponse = '';
-      List<ProductEntity>? products;
+    final history = _messages
+        .where((m) => m['products'] == null) // Simple filter for text history
+        .map(
+          (m) => {
+            'role': (m['isUser'] as bool) ? 'user' : 'assistant',
+            'content': m['text'] as String,
+          },
+        )
+        .toList();
 
-      if (userMessage.contains('телефон') || userMessage.contains('iphone')) {
-        aiResponse = 'Отличный выбор! У нас есть новейший iPhone 16 PRO. Это флагманский смартфон с потрясающей камерой и производительностью. Хотите посмотреть?';
-        products = [_suggestedProducts[0]];
-      } else if (userMessage.contains('ноутбук') || userMessage.contains('macbook')) {
-        aiResponse = 'Для работы и творчества рекомендую MacBook Pro. Мощный процессор M3 и великолепный дисплей!';
-        products = [_suggestedProducts[1]];
-      } else if (userMessage.contains('наушники') || userMessage.contains('airpods')) {
-        aiResponse = 'AirPods Pro - идеальный выбор! Активное шумоподавление и отличное качество звука.';
-        products = [_suggestedProducts[2]];
-      } else if (userMessage.contains('привет') || userMessage.contains('здравствуй')) {
-        aiResponse = 'Привет! Рад помочь вам с выбором. Что вас интересует?';
-      } else {
-        aiResponse = 'Вот несколько популярных товаров, которые могут вам понравиться:';
-        products = _suggestedProducts;
-      }
+    context.read<AiBloc>().add(
+      AiMessageSent(
+        message: {'role': 'user', 'content': userMessage},
+        history: history,
+      ),
+    );
 
-      setState(() {
-        _messages.add({
-          'text': aiResponse,
-          'isUser': false,
-          'timestamp': DateTime.now(),
-          'products': products,
-        });
+    _scrollToBottom();
+  }
+
+  void _handleAIResponse(String text) {
+    setState(() {
+      _messages.add({
+        'text': text,
+        'isUser': false,
+        'timestamp': DateTime.now(),
       });
-
-      _scrollToBottom();
     });
-
     _scrollToBottom();
   }
 
@@ -162,31 +130,46 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
                 ),
                 Text(
                   'Онлайн',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: Colors.green,
-                  ),
+                  style: GoogleFonts.inter(fontSize: 12, color: Colors.green),
                 ),
               ],
             ),
           ],
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(16),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                return _buildMessage(_messages[index]);
-              },
-            ),
-          ),
-          _buildQuickActions(),
-          _buildMessageInput(),
-        ],
+      body: BlocConsumer<AiBloc, AiState>(
+        listener: (context, state) {
+          if (state is AiSuccess) {
+            _handleAIResponse(state.response);
+          } else if (state is AiError) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
+          }
+        },
+        builder: (context, state) {
+          return Column(
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.all(16),
+                  itemCount: _messages.length,
+                  itemBuilder: (context, index) {
+                    return _buildMessage(_messages[index]);
+                  },
+                ),
+              ),
+              if (state is AiLoading)
+                const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: CircularProgressIndicator(),
+                ),
+              _buildQuickActions(),
+              _buildMessageInput(),
+            ],
+          );
+        },
       ),
     );
   }
@@ -198,10 +181,14 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Column(
-        crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment: isUser
+            ? CrossAxisAlignment.end
+            : CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+            mainAxisAlignment: isUser
+                ? MainAxisAlignment.end
+                : MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (!isUser)
@@ -222,9 +209,14 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
               if (!isUser) const SizedBox(width: 8),
               Flexible(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
-                    color: isUser ? const Color(0xFF494F88) : Colors.grey.shade100,
+                    color: isUser
+                        ? const Color(0xFF494F88)
+                        : Colors.grey.shade100,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
@@ -304,10 +296,7 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
                   const SizedBox(height: 4),
                   Text(
                     product.category,
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      color: Colors.grey,
-                    ),
+                    style: GoogleFonts.inter(fontSize: 12, color: Colors.grey),
                   ),
                   const SizedBox(height: 4),
                   Row(
@@ -343,12 +332,7 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
   }
 
   Widget _buildQuickActions() {
-    final actions = [
-      'Телефоны',
-      'Ноутбуки',
-      'Наушники',
-      'Одежда',
-    ];
+    final actions = ['Телефоны', 'Ноутбуки', 'Наушники', 'Одежда'];
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -364,7 +348,10 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
                   _sendMessage();
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.grey.shade100,
                     borderRadius: BorderRadius.circular(20),
@@ -437,11 +424,7 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
                   ),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.send,
-                  color: Colors.white,
-                  size: 20,
-                ),
+                child: const Icon(Icons.send, color: Colors.white, size: 20),
               ),
             ),
           ],

@@ -29,8 +29,11 @@ class _AuthScreenState extends State<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthAuthenticated) {
@@ -74,6 +77,12 @@ class _AuthScreenState extends State<AuthScreen> {
                             'lib/assets/logo/logo_weez.svg',
                             width: 70,
                             height: 70,
+                            colorFilter: isDark
+                                ? const ColorFilter.mode(
+                                    Colors.white,
+                                    BlendMode.srcIn,
+                                  )
+                                : null,
                           ),
                         ),
 
@@ -85,7 +94,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           style: GoogleFonts.inter(
                             fontSize: 24,
                             fontWeight: FontWeight.w700,
-                            color: Colors.black,
+                            color: isDark ? Colors.white : Colors.black,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -108,7 +117,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           style: GoogleFonts.inter(
                             fontSize: 13,
                             fontWeight: FontWeight.w400,
-                            color: Colors.black54,
+                            color: isDark ? Colors.white54 : Colors.black54,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -121,16 +130,18 @@ class _AuthScreenState extends State<AuthScreen> {
                           keyboardType: TextInputType.emailAddress,
                           style: GoogleFonts.inter(
                             fontSize: 15,
-                            color: Colors.black,
+                            color: isDark ? Colors.white : Colors.black,
                           ),
                           decoration: InputDecoration(
                             hintText: 'Email',
                             hintStyle: GoogleFonts.inter(
                               fontSize: 15,
-                              color: Colors.black45,
+                              color: isDark ? Colors.white38 : Colors.black45,
                             ),
                             filled: true,
-                            fillColor: const Color(0xFFF5F5F5),
+                            fillColor: isDark
+                                ? Colors.grey[900]
+                                : const Color(0xFFF5F5F5),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide.none,
@@ -141,9 +152,11 @@ class _AuthScreenState extends State<AuthScreen> {
                             ),
                             suffixIcon: _emailController.text.isNotEmpty
                                 ? IconButton(
-                                    icon: const Icon(
+                                    icon: Icon(
                                       Icons.cancel,
-                                      color: Colors.grey,
+                                      color: isDark
+                                          ? Colors.white38
+                                          : Colors.grey,
                                       size: 20,
                                     ),
                                     onPressed: () {
@@ -167,16 +180,18 @@ class _AuthScreenState extends State<AuthScreen> {
                           obscureText: _obscurePassword,
                           style: GoogleFonts.inter(
                             fontSize: 15,
-                            color: Colors.black,
+                            color: isDark ? Colors.white : Colors.black,
                           ),
                           decoration: InputDecoration(
                             hintText: 'Пароль',
                             hintStyle: GoogleFonts.inter(
                               fontSize: 15,
-                              color: Colors.black45,
+                              color: isDark ? Colors.white38 : Colors.black45,
                             ),
                             filled: true,
-                            fillColor: const Color(0xFFF5F5F5),
+                            fillColor: isDark
+                                ? Colors.grey[900]
+                                : const Color(0xFFF5F5F5),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide.none,
@@ -190,7 +205,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                 _obscurePassword
                                     ? Icons.visibility_off
                                     : Icons.visibility,
-                                color: Colors.grey,
+                                color: isDark ? Colors.white38 : Colors.grey,
                                 size: 20,
                               ),
                               onPressed: () {
@@ -257,7 +272,9 @@ class _AuthScreenState extends State<AuthScreen> {
                             }
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.black,
+                            backgroundColor: isDark
+                                ? theme.colorScheme.primary
+                                : Colors.black,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
@@ -286,7 +303,9 @@ class _AuthScreenState extends State<AuthScreen> {
                                 'Нет аккаунта? ',
                                 style: GoogleFonts.inter(
                                   fontSize: 14,
-                                  color: Colors.black54,
+                                  color: isDark
+                                      ? Colors.white54
+                                      : Colors.black54,
                                 ),
                               ),
                               GestureDetector(
@@ -320,7 +339,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             text: TextSpan(
                               style: GoogleFonts.inter(
                                 fontSize: 11,
-                                color: Colors.black54,
+                                color: isDark ? Colors.white38 : Colors.black54,
                                 height: 1.4,
                               ),
                               children: [

@@ -12,6 +12,7 @@ class OrderEntity extends Equatable {
   final String? buyerPhone;
   final String? buyerAddress;
   final List<OrderItemEntity>? items;
+  final String? storeName;
 
   const OrderEntity({
     required this.id,
@@ -23,6 +24,7 @@ class OrderEntity extends Equatable {
     this.buyerPhone,
     this.buyerAddress,
     this.items,
+    this.storeName,
   });
 
   @override
@@ -36,5 +38,6 @@ class OrderEntity extends Equatable {
     buyerPhone,
     buyerAddress,
     items,
+    storeName,
   ];
 }

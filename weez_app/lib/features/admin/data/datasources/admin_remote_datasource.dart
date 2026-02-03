@@ -20,7 +20,7 @@ class AdminRemoteDataSourceImpl implements AdminRemoteDataSource {
   @override
   Future<Either<Failure, AdminStatsModel>> getStats() async {
     try {
-      final response = await apiClient.get('/api/v1/admin/stats');
+      final response = await apiClient.get('/admin/stats');
       if (response.statusCode == 200) {
         final data = response.data;
         final map = data is String ? json.decode(data) : data;
@@ -42,7 +42,7 @@ class AdminRemoteDataSourceImpl implements AdminRemoteDataSource {
   }) async {
     try {
       final response = await apiClient.get(
-        '/api/v1/admin/users',
+        '/admin/users',
         queryParameters: {'page': page, 'limit': limit},
       );
 

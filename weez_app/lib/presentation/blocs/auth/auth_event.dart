@@ -45,3 +45,14 @@ class AuthRegisterRequested extends AuthEvent {
 }
 
 class AuthLogoutRequested extends AuthEvent {}
+
+class AuthUpdateProfileRequested extends AuthEvent {
+  final String? name;
+  final String? email;
+  final String? phone;
+
+  const AuthUpdateProfileRequested({this.name, this.email, this.phone});
+
+  @override
+  List<Object> get props => [name ?? '', email ?? '', phone ?? ''];
+}

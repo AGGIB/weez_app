@@ -10,11 +10,11 @@ import '../utils/jwt.dart';
 class SellerApi {
   Router get router {
     final router = Router();
-    router.post('/store', _createStore);
-    router.get('/store/mine', _getMyStore);
-    router.post('/products', _addProduct);
-    router.get('/dashboard-stats', _getDashboardStats);
-    router.put('/store', _updateStore);
+    router.post('/seller/store', _createStore);
+    router.get('/seller/store/mine', _getMyStore);
+    router.post('/seller/products', _addProduct);
+    router.get('/seller/dashboard-stats', _getDashboardStats);
+    router.put('/seller/store', _updateStore);
     return router;
   }
 

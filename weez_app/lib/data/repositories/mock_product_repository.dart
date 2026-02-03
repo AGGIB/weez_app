@@ -73,6 +73,9 @@ class MockProductRepository implements ProductRepository {
   Future<Either<Failure, List<ProductEntity>>> getProducts({
     String? category,
     String? storeId,
+    String? search,
+    double? minPrice,
+    double? maxPrice,
   }) async {
     await Future.delayed(const Duration(milliseconds: 500));
     if (category != null && category != 'Все товары') {
@@ -120,7 +123,7 @@ class MockProductRepository implements ProductRepository {
   }
 
   @override
-  Future<Either<Failure, void>> toggleFavorite(String productId) async {
+  Future<Either<Failure, bool>> toggleFavorite(String productId) async {
     final index = _products.indexWhere((p) => p.id == productId);
     if (index != -1) {
       final product = _products[index];
@@ -137,7 +140,7 @@ class MockProductRepository implements ProductRepository {
         rating: product.rating,
         isFavorite: !product.isFavorite,
       );
-      return const Right(null);
+      return Right(_products[index].isFavorite);
     }
     return const Left(ServerFailure('Product not found'));
   }

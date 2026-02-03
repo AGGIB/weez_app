@@ -15,10 +15,16 @@ class ProductRepositoryImpl implements ProductRepository {
   Future<Either<Failure, List<ProductEntity>>> getProducts({
     String? category,
     String? storeId,
+    String? search,
+    double? minPrice,
+    double? maxPrice,
   }) async {
     return await remoteDataSource.getProducts(
       category: category,
       storeId: storeId,
+      search: search,
+      minPrice: minPrice,
+      maxPrice: maxPrice,
     );
   }
 
@@ -52,15 +58,13 @@ class ProductRepositoryImpl implements ProductRepository {
   }
 
   @override
-  Future<Either<Failure, void>> toggleFavorite(String productId) async {
-    // TODO: Implement favourite endpoint
-    return const Right(null);
+  Future<Either<Failure, bool>> toggleFavorite(String productId) async {
+    return await remoteDataSource.toggleFavorite(productId);
   }
 
   @override
   Future<Either<Failure, List<ProductEntity>>> getFavorites() async {
-    // TODO: Implement favourites endpoint
-    return const Right([]);
+    return await remoteDataSource.getFavorites();
   }
 
   @override
